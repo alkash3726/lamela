@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Ulang Tahun ✨</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fredoka:wght@400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #060913;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- 1. INTRO SCREEN --- */
+        #introScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #060913;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+        .intro-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            color: #fde047;
+            animation: pulseText 2s infinite;
+            text-align: center;
+        }
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); text-shadow: 0 0 15px rgba(253, 224, 71, 0.5); }
+        }
+
+        /* --- 2. CEREMONY TIUP LILIN --- */
+        #candleScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 8888;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            padding: 20px;
+            text-align: center;
+        }
+        #candleScreen.active { opacity: 1; pointer-events: auto; }
+
+        .candle-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            color: #fde047;
+            margin-bottom: 8px;
+        }
+        .candle-sub {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        /* Animasi Kue & Lilin */
+        .cake-container {
+            position: relative;
+            width: 150px;
+            height: 140px;
+            margin-bottom: 30px;
+        }
+        .cake-base {
+            position: absolute; bottom: 0; width: 100%; height: 70px;
+            background: linear-gradient(to right, #f43f5e, #fb7185);
+            border-radius: 12px 12px 6px 6px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .cake-top {
+            position: absolute; bottom: 70px; left: 15px; width: 120px; height: 40px;
+            background: #fff; border-radius: 10px 10px 0 0;
+        }
+        .candle {
+            position: absolute; bottom: 110px; left: 68px; width: 14px; height: 45px;
+            background: repeating-linear-gradient(45deg, #3b82f6, #3b82f6 5px, #60a5fa 5px, #60a5fa 10px);
+            border-radius: 4px;
+        }
+        .flame {
+            position: absolute; bottom: 158px; left: 69px; width: 12px; height: 22px;
+            background: linear-gradient(to top, #ff4500, #ffae00, #ffff00);
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 20px #ffae00, 0 0 35px #ff4500;
+            animation: flicker 0.1s infinite alternate;
+            transform-origin: center bottom;
+        }
+        .flame.off { display: none; }
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-2deg); }
+            100% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        .smoke {
+            position: absolute; bottom: 155px; left: 70px; width: 10px; height: 10px;
+            background: rgba(255, 255, 255, 0.6); border-radius: 50%;
+            opacity: 0; pointer-events: none;
+        }
+        .smoke.active { animation: riseSmoke 2s forwards; }
+        @keyframes riseSmoke {
+            0% { opacity: 0.8; transform: translateY(0) scale(1); filter: blur(2px); }
+            100% { opacity: 0; transform: translateY(-80px) scale(4); filter: blur(8px); }
+        }
+
+        .secret-reveal {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 1s ease;
+            max-width: 400px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #fde047;
+            margin-top: 10px;
+            display: none;
+        }
+        .secret-reveal.show { display: block; opacity: 1; transform: scale(1); }
+
+        .btn-mic-fallback {
+            background: transparent; border: 1px solid #475569; color: #94a3b8;
+            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; margin-top: 15px;
+        }
+
+        /* --- 3. BACKGROUND LANGIT & BINTANG JATUH --- */
+        .night-sky {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at bottom, #111827 0%, #060913 100%);
+            z-index: -2;
+        }
+        .stars-layer-1, .stars-layer-2 {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-repeat: repeat;
+        }
+        .stars-layer-1 {
+            background-image: radial-gradient(1.5px 1.5px at 25px 35px, #ffffff, rgba(0,0,0,0)), radial-gradient(2px 2px at 80px 120px, #ffd700, rgba(0,0,0,0)), radial-gradient(1.5px 1.5px at 180px 60px, #ffffff, rgba(0,0,0,0));
+            background-size: 450px 450px; opacity: 0.7; animation: pulseStars 6s infinite ease-in-out alternate;
+        }
+        .stars-layer-2 {
+            background-image: radial-gradient(1.5px 1.5px at 50px 200px, #ffffff, rgba(0,0,0,0)), radial-gradient(2px 2px at 140px 310px, #fef08a, rgba(0,0,0,0));
+            background-size: 500px 500px; opacity: 0.4; animation: pulseStars 8s infinite ease-in-out alternate-reverse;
+        }
+        @keyframes pulseStars { 0% { opacity: 0.3; } 100% { opacity: 0.85; } }
+
+        .shooting-star {
+            position: absolute; width: 110px; height: 2px;
+            background: linear-gradient(270deg, rgba(255, 255, 255, 1), rgba(255, 215, 0, 0.6), transparent);
+            transform: rotate(-45deg); opacity: 0;
+            animation: naturalShoot 7s infinite ease-out;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+        }
+        .star-1 { top: -10px; right: 5%; animation-delay: 0.5s; animation-duration: 6s; }
+        .star-2 { top: 20%; right: -30px; animation-delay: 3.2s; animation-duration: 8s; }
+        .star-3 { top: 5%; right: 40%; animation-delay: 5.8s; animation-duration: 7s; }
+        .star-4 { top: 35%; right: 10%; animation-delay: 2.0s; animation-duration: 9s; }
+        .star-5 { top: 15%; right: 60%; animation-delay: 4.5s; animation-duration: 6.5s; }
+
+        @keyframes naturalShoot {
+            0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 0; }
+            15% { opacity: 1; }
+            45%, 100% { transform: translateX(-650px) translateY(650px) rotate(-45deg); opacity: 0; }
+        }
+
+        /* --- 4. DEKORASI BUNGA GERBERA --- */
+        .gerbera-decor {
+            position: fixed; z-index: -1; pointer-events: none; opacity: 0.55;
+        }
+        .gerbera-pink { top: 6%; left: 4%; }
+        .gerbera-gold { bottom: 10%; right: 4%; }
+        .gerbera-peach { top: 18%; right: 6%; }
+
+        /* --- 5. LAMPION TERBANG --- */
+        .lantern {
+            position: fixed; bottom: -100px; width: 50px; height: 70px;
+            background: linear-gradient(to bottom, #ffb347, #ff7b00);
+            border-radius: 25px 25px 10px 10px;
+            box-shadow: 0 0 20px #ff7b00, inset 0 0 15px #ffe600;
+            display: flex; align-items: center; justify-content: center; z-index: 10;
+            animation: floatLantern 12s linear forwards, swayLantern 3s ease-in-out infinite alternate;
+        }
+        .lantern-text { font-family: 'Caveat', cursive; color: #fff; font-size: 0.8rem; text-align: center; padding: 5px; }
+        @keyframes floatLantern { 0% { bottom: -100px; opacity: 1; } 100% { bottom: 110vh; opacity: 0.2; } }
+        @keyframes swayLantern { 0% { transform: translateX(-15px) rotate(-5deg); } 100% { transform: translateX(15px) rotate(5deg); } }
+
+        /* --- 6. CONTAINER UTAMA WEB --- */
+        .main-container {
+            width: 100%; max-width: 950px; display: flex; flex-direction: column; gap: 24px; z-index: 1;
+            opacity: 0; transform: translateY(20px); transition: all 1.5s ease;
+        }
+        .main-container.show { opacity: 1; transform: translateY(0); }
+
+        .banner-atas {
+            background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; padding: 24px; text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .banner-content h1 { font-family: 'Fredoka', sans-serif; font-size: 2.5rem; color: #fde047; margin-bottom: 6px; }
+
+        /* 3D Tilt Photo Cards */
+        .photo-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; perspective: 1000px; }
+        .photo-card {
+            background: rgba(17, 24, 39, 0.8); border: 1px solid #1e293b;
+            border-radius: 16px; padding: 14px; text-align: center; cursor: pointer;
+            transform-style: preserve-3d; transition: border-color 0.3s;
+        }
+        .photo-card:hover { border-color: #f59e0b; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2); }
+        .photo-frame { width: 100%; height: 190px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .photo-card:hover .photo-frame img { transform: scale(1.1); }
+        .photo-caption { font-family: 'Caveat', cursive; font-size: 1.3rem; color: #cbd5e1; }
+
+        /* Interaktif Grid */
+        .interactive-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+        .wish-section, .gift-section {
+            background: rgba(17, 24, 39, 0.8); border: 1px solid #1e293b; border-radius: 16px; padding: 20px;
+        }
+        .wish-section { display: flex; align-items: center; gap: 18px; }
+        .wish-box h3, .gift-section h3 { font-family: 'Fredoka', sans-serif; font-size: 1.3rem; color: #f8fafc; margin-bottom: 8px; }
+        textarea {
+            width: 100%; background: #090d16; border: 1px solid #334155; border-radius: 8px;
+            padding: 10px; color: #fff; font-family: 'Quicksand', sans-serif; resize: none; height: 60px;
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #d97706, #b45309); color: #fff;
+            border: none; padding: 10px 16px; border-radius: 8px; font-family: 'Fredoka', sans-serif; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-action:hover { transform: translateY(-2px); }
+
+        .gift-section { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .gift-icon { font-size: 3rem; margin-bottom: 10px; animation: shake 2s infinite ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+
+        /* Footer & Modals */
+        .footer-bottom { display: flex; justify-content: center; margin-top: 10px; }
+        .btn-dari-saya {
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none;
+            padding: 12px 30px; border-radius: 25px; font-family: 'Fredoka', sans-serif; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: #0f172a; border: 1px solid #3b82f6; width: 90%; max-width: 450px;
+            padding: 30px; border-radius: 20px; position: relative;
+        }
+        .close-modal { position: absolute; top: 15px; right: 20px; background: none; border: none; color: #94a3b8; font-size: 1.8rem; cursor: pointer; }
+
+        /* Voice Note Player */
+        .voice-note {
+            background: #1e293b; padding: 12px; border-radius: 30px; display: flex; align-items: center; gap: 10px; margin: 15px 0;
+            border: 1px solid #334155;
+        }
+        .play-vn-btn {
+            background: #3b82f6; color: white; border: none; width: 35px; height: 35px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1rem;
+        }
+        .vn-wave { flex-grow: 1; height: 4px; background: #475569; border-radius: 2px; position: relative; overflow: hidden; }
+        .vn-progress { height: 100%; width: 0%; background: #60a5fa; transition: width 0.1s; }
+
+        @media (max-width: 768px) {
+            .photo-section { grid-template-columns: 1fr; }
+            .interactive-grid { grid-template-columns: 1fr; }
+            .wish-section { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. INTRO SCREEN -->
+    <div id="introScreen">
+        <div class="intro-text">
+            <span>✨ Sentuh untuk memulai kejutan ✨</span>
+        </div>
+    </div>
+
+    <!-- 2. LAYAR CEREMONY TIUP LILIN -->
+    <div id="candleScreen">
+        <h2 class="candle-title">Make a Wish & Tiup Lilinnya </h2>
+        <p class="candle-sub" id="candleInstruction">Dekatkan HP dan tiup mikrofonmu untuk memadamkan api!</p>
+
+        <div class="cake-container">
+            <div class="flame" id="flame"></div>
+            <div class="smoke" id="smoke"></div>
+            <div class="candle"></div>
+            <div class="cake-top"></div>
+            <div class="cake-base"></div>
+        </div>
+
+        <div class="secret-reveal" id="secretReveal">
+            <h3 style="font-family: 'Fredoka'; color: #fde047; margin-bottom: 8px;">Selamat Ulang Tahun! 🎉</h3>
+            <p style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 15px;">
+                "Semoga Nilai Uts nya tinggi aaminn"
+            </p>
+            <button class="btn-action" id="btnContinueWeb" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                Buka 
+            </button>
+        </div>
+
+        <button class="btn-mic-fallback" id="btnFallbackBlow">Atau sentuh di sini kalau gak bisa tiup</button>
+    </div>
+
+    <!-- 3. BACKGROUND LANGIT & BINTANG JATUH -->
+    <div class="night-sky">
+        <div class="stars-layer-1"></div>
+        <div class="stars-layer-2"></div>
+        <div class="shooting-star star-1"></div>
+        <div class="shooting-star star-2"></div>
+        <div class="shooting-star star-3"></div>
+        <div class="shooting-star star-4"></div>
+        <div class="shooting-star star-5"></div>
+    </div>
+
+    <!-- 4. BUNGA GERBERA DEKORASI -->
+    <div class="gerbera-decor gerbera-pink" title="Bunga Gerbera Pink">
+        <svg viewBox="0 0 100 100" width="60" height="60">
+            <g fill="none" stroke="rgba(255, 182, 193, 0.45)" stroke-width="1.5">
+                <ellipse cx="50" cy="25" rx="6" ry="18" fill="rgba(255, 182, 193, 0.2)"/>
+                <ellipse cx="50" cy="75" rx="6" ry="18" fill="rgba(255, 182, 193, 0.2)"/>
+                <ellipse cx="25" cy="50" rx="18" ry="6" fill="rgba(255, 182, 193, 0.2)"/>
+                <ellipse cx="75" cy="50" rx="18" ry="6" fill="rgba(255, 182, 193, 0.2)"/>
+            </g>
+            <circle cx="50" cy="50" r="8" fill="rgba(255, 215, 0, 0.5)" />
+        </svg>
+    </div>
+
+    <div class="gerbera-decor gerbera-gold" title="Bunga Gerbera Kuning Emas">
+        <svg viewBox="0 0 100 100" width="50" height="50">
+            <g fill="none" stroke="rgba(255, 215, 0, 0.45)" stroke-width="1.5">
+                <ellipse cx="50" cy="25" rx="5" ry="16" fill="rgba(255, 223, 138, 0.2)"/>
+                <ellipse cx="50" cy="75" rx="5" ry="16" fill="rgba(255, 223, 138, 0.2)"/>
+                <ellipse cx="25" cy="50" rx="16" ry="5" fill="rgba(255, 223, 138, 0.2)"/>
+                <ellipse cx="75" cy="50" rx="16" ry="5" fill="rgba(255, 223, 138, 0.2)"/>
+            </g>
+            <circle cx="50" cy="50" r="7" fill="rgba(240, 168, 80, 0.5)" />
+        </svg>
+    </div>
+
+    <div class="gerbera-decor gerbera-peach" title="Bunga Gerbera Soft Peach">
+        <svg viewBox="0 0 100 100" width="55" height="55">
+            <g fill="none" stroke="rgba(255, 203, 164, 0.45)" stroke-width="1.5">
+                <ellipse cx="50" cy="25" rx="6" ry="17" fill="rgba(255, 218, 185, 0.2)"/>
+                <ellipse cx="50" cy="75" rx="6" ry="17" fill="rgba(255, 218, 185, 0.2)"/>
+                <ellipse cx="25" cy="50" rx="17" ry="6" fill="rgba(255, 218, 185, 0.2)"/>
+                <ellipse cx="75" cy="50" rx="17" ry="6" fill="rgba(255, 218, 185, 0.2)"/>
+            </g>
+            <circle cx="50" cy="50" r="8" fill="rgba(255, 180, 120, 0.5)" />
+        </svg>
+    </div>
+
+    <!-- 5. CONTAINER UTAMA WEB -->
+    <main class="main-container" id="mainApp">
+        <header class="banner-atas">
+            <div class="banner-content">
+                <h1>Selamat Ulang Tahun! 🎂</h1>
+                <p>Semoga semesta dan Tuhan selalu berkonspirasi untuk kebahagiaanmu di usia yang baru ini </p>
+            </div>
+        </header>
+
+        <!-- Gallery dengan Efek 3D Tilt -->
+        <section class="photo-section">
+            <div class="photo-card vanilla-tilt">
+                <div class="photo-frame">
+                    <img src="sage.jpeg" alt="Foto 1">
+                </div>
+                <p class="photo-caption">Hari-Hari Bersama Valorant </p>
+            </div>
+            <div class="photo-card vanilla-tilt">
+                <div class="photo-frame">
+                    <img src="amell.jpeg" alt="Foto 2">
+                </div>
+                <p class="photo-caption">Terus bersinar kaya bintang </p>
+            </div>
+            <div class="photo-card vanilla-tilt">
+                <div class="photo-frame">
+                    <img src="kucing.jpeg" alt="Foto 3">
+                </div>
+                <p class="photo-caption">Hari spesial tuan putri</p>
+            </div>
+        </section>
+
+        <!-- Interaktif Grid -->
+        <div class="interactive-grid">
+            <section class="wish-section">
+                <div class="wish-box" style="width: 100%;">
+                    <h3>Terbangkan Lampion Harapan 🎐</h3>
+                    <p>Tuliskan harapanmu, lalu lihat ia terbang ke langit malam.</p>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <textarea id="userWishInput" placeholder="Di usia ini, aku berharap..."></textarea>
+                        <button id="submitWishBtn" class="btn-action">Terbangkan Ke Langit ✨</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="gift-section">
+                <div class="gift-icon" id="giftIconAnim">🎁</div>
+                <h3>Kotak Kejutan</h3>
+                <p>Ada pesan rahasia buat amell </p>
+                <button class="btn-action" id="openGiftBtn" style="background: linear-gradient(135deg, #7e22ce, #6b21a8);">Buka</button>
+            </section>
+        </div>
+
+        <footer class="footer-bottom">
+            <button class="btn-dari-saya" id="openLetterBtn">Ada Surat Buat andaa 💌</button>
+        </footer>
+    </main>
+
+    <!-- Modal Surat dengan Voice Note -->
+    <div class="modal-overlay" id="letterModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+            <h3 style="font-family: 'Fredoka'; color: white; margin-bottom: 10px;">Untuk dirimu... 🌙</h3>
+            
+
+            <div style="color: #cbd5e1; line-height: 1.6; font-size: 0.95rem;">
+                <p>Haii,</p>
+                <p>Selamat ulang tahun ya adek.</p>
+                <p>Day 1 20 tahun, semoga di umur yang ke-20 ini selalu dimudahkan segala urusannya, selalu diberi kebahagiaan entah dari siapapun itu, juga jauh' dari si robi' itu lah hama dia. juga semoga laptop anda tetap sehat terus yaa</p>
+                <p style="font-family: 'Caveat'; font-size: 1.5rem; color: #93c5fd; margin-top: 15px;">~ Dari Manusia Setengah Peramal</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Kado -->
+    <div class="modal-overlay" id="giftModal">
+        <div class="modal-content" style="text-align: center;">
+            <button class="close-modal" id="closeGiftModal">&times;</button>
+            <h3 style="font-family: 'Fredoka'; color: #fde047; margin-bottom: 15px;">Pesan pesanan</h3>
+            <p id="giftMessageText" style="font-size: 1.3rem; color: white; font-family: 'Caveat', cursive; line-height: 1.4;"></p>
+        </div>
+    </div>
+
+    <!-- Audio Background -->
+    <audio id="bgAudio" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Elements
+        const introScreen = document.getElementById('introScreen');
+        const candleScreen = document.getElementById('candleScreen');
+        const mainApp = document.getElementById('mainApp');
+        const bgAudio = document.getElementById('bgAudio');
+        const flame = document.getElementById('flame');
+        const smoke = document.getElementById('smoke');
+        const secretReveal = document.getElementById('secretReveal');
+        const btnFallbackBlow = document.getElementById('btnFallbackBlow');
+        const candleInstruction = document.getElementById('candleInstruction');
+        
+        let isBlown = false;
+
+        // 1. DARI INTRO KE TIUP LILIN
+        introScreen.addEventListener('click', () => {
+            introScreen.style.opacity = '0';
+            setTimeout(() => {
+                introScreen.style.display = 'none';
+                candleScreen.classList.add('active');
+                bgAudio.volume = 0.2;
+                bgAudio.play().catch(e => console.log(e));
+                
+                startMicrophoneDetection();
+            }, 800);
+        });
+
+        // 2. DETEKSI TIUPAN MIKROFON
+        function startMicrophoneDetection() {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(stream => {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                const scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(scriptProcessor);
+                scriptProcessor.connect(audioContext.destination);
+
+                scriptProcessor.onaudioprocess = function() {
+                    if (isBlown) return;
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    let values = 0;
+                    for (let i = 0; i < array.length; i++) { values += array[i]; }
+                    const average = values / array.length;
+                    
+                    if (average > 42) {
+                        triggerBlowOut();
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                };
+            })
+            .catch(err => {
+                console.log("Mic tidak diizinkan/didukung, gunakan tombol manual.");
+            });
+        }
+
+        function triggerBlowOut() {
+            if (isBlown) return;
+            isBlown = true;
+
+            flame.classList.add('off');
+            smoke.classList.add('active');
+            btnFallbackBlow.style.display = 'none';
+            candleInstruction.innerText = "YAY! Doamu sedang terbang ke langit... ✨";
+
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+
+            bgAudio.volume = 0.5;
+
+            setTimeout(() => {
+                secretReveal.classList.add('show');
+            }, 1000);
+        }
+
+        btnFallbackBlow.addEventListener('click', triggerBlowOut);
+
+        // 3. MASUK KE WEBSITE UTAMA
+        document.getElementById('btnContinueWeb').addEventListener('click', () => {
+            candleScreen.style.opacity = '0';
+            setTimeout(() => {
+                candleScreen.style.display = 'none';
+                mainApp.classList.add('show');
+            }, 1000);
+        });
+
+        // 4. EFEK 3D TILT FOTO
+        const cards = document.querySelectorAll('.vanilla-tilt');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                card.style.transition = 'transform 0.5s ease';
+            });
+            card.addEventListener('mouseenter', () => {
+                card.style.transition = 'none';
+            });
+        });
+
+        // 5. FITUR LAMPION TERBANG
+        document.getElementById('submitWishBtn').addEventListener('click', () => {
+            const text = document.getElementById('userWishInput').value.trim();
+            if(!text) return alert("Tuliskan harapanmu dulu ya! ✨");
+
+            const lantern = document.createElement('div');
+            lantern.className = 'lantern';
+            lantern.style.left = `${Math.floor(Math.random() * (window.innerWidth - 60))}px`;
+
+            const lanternText = document.createElement('div');
+            lanternText.className = 'lantern-text';
+            lanternText.innerText = text.length > 15 ? text.substring(0, 15) + "..." : text;
+            lantern.appendChild(lanternText);
+
+            document.body.appendChild(lantern);
+            document.getElementById('userWishInput').value = "";
+
+            setTimeout(() => lantern.remove(), 12000);
+        });
+
+        // 6. MYSTERY GIFT
+        const giftMessages = [
+            "“Teruslah melangkah dengan senyuman selebar bumi, doa-doa baik selalu menyertai lu di setiap langkahnya.” ",
+            "“lu jauh lebih kuat dan hebat dari yang lu bayangin. Banggalah pada dirimu tuan putri!” ",
+            "“Tahun ini akan jadi tahun di mana banyak hal manis terjadi dihidup anda. semoga” 🌸",
+            "“Jangan pernah capee menjadi orang baik!” "
+        ];
+        const openGiftBtn = document.getElementById('openGiftBtn');
+        const giftIconAnim = document.getElementById('giftIconAnim');
+
+        openGiftBtn.addEventListener('click', () => {
+            giftIconAnim.style.animation = 'shake 0.2s infinite';
+            setTimeout(() => {
+                giftIconAnim.style.animation = 'shake 2s infinite ease-in-out';
+                document.getElementById('giftMessageText').innerText = giftMessages[Math.floor(Math.random() * giftMessages.length)];
+                document.getElementById('giftModal').classList.add('active');
+            }, 600);
+        });
+        document.getElementById('closeGiftModal').addEventListener('click', () => {
+            document.getElementById('giftModal').classList.remove('active');
+        });
+
+        // 7. MODAL SURAT & VOICE NOTE
+        const letterModal = document.getElementById('letterModal');
+        const vnAudio = document.getElementById('vnAudio');
+        const playVnBtn = document.getElementById('playVnBtn');
+        const vnProgress = document.getElementById('vnProgress');
+        let vnPlaying = false;
+
+        document.getElementById('openLetterBtn').addEventListener('click', () => letterModal.classList.add('active'));
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            letterModal.classList.remove('active');
+            vnAudio.pause(); playVnBtn.innerText = '▶'; vnPlaying = false;
+            bgAudio.volume = 0.5;
+        });
+
+        playVnBtn.addEventListener('click', () => {
+            if(vnPlaying) {
+                vnAudio.pause();
+                playVnBtn.innerText = '▶';
+                bgAudio.volume = 0.5;
+            } else {
+                bgAudio.volume = 0.1;
+                vnAudio.play();
+                playVnBtn.innerText = '⏸';
+            }
+            vnPlaying = !vnPlaying;
+        });
+
+        vnAudio.addEventListener('timeupdate', () => {
+            const progress = (vnAudio.currentTime / vnAudio.duration) * 100;
+            vnProgress.style.width = `${progress}%`;
+        });
+        
+        vnAudio.addEventListener('ended', () => {
+            playVnBtn.innerText = '▶';
+            vnPlaying = false;
+            bgAudio.volume = 0.5;
+            vnProgress.style.width = '0%';
+        });
+    </script>
+</body>
+</html>
